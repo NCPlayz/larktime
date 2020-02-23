@@ -1,13 +1,16 @@
 from datetime import datetime
 
 from lark import Lark
+from pathlib import Path
 
 DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 MONTHS = ['__', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
 class DateTimeParser:
     def __init__(self):
-        self.parser = Lark.open('datetime.lark', parser='lalr', start='_expr')
+        grammar = Path(__file__).parent.joinpath('datetime.lark')
+
+        self.parser = Lark.open(grammar, parser='lalr', start='_expr')
 
         self._day = 0
         self._month = 0

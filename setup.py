@@ -3,8 +3,8 @@ import re
 
 requirements = ['lark-parser']
 
-with open('larktime/__init__.py') as f:
-    version = re.search(r"__version__ = '(.+)'\n").group(1)
+with open('larktime/__init__.py', 'r') as f:
+    version = re.search(r"__version__ = '(.+)'\n", f.read()).group(1)
 
 readme = ''
 with open('README.md') as f:
