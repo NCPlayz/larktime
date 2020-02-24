@@ -3,6 +3,7 @@ random: /[a-zA-Z_]\w*/
 _expr: date
      | time
      | date "at" time
+     | relative_phrases
      | random _expr
      | _expr random
 
@@ -11,6 +12,7 @@ date: days
     | little_endian
     | middle_endian
     | other
+    | relative -> relative
 
 day_month: /[0-9]{1,2}/
 year: /[0-9]{4}/
@@ -69,11 +71,38 @@ months: ("January" | "Jan") -> jan
       | ("November" | "Nov") -> nov
       | ("December" | "Dec") -> dec
 
-hour_min: /[0-9]{2}/
+relative: "yesterday" -> yesterday
+        | "today" -> today
+        | "tomorrow" -> tomorrow
 
-time: _time timezone?
+relative_phrases:
+        | "in" /[2-9]+/ "days" -> rel_few_days
+        | "in" ("a" | "1") "second" -> rel_one_second
+        | "in" /[2-9]+/ "seconds" -> rel_few_seconds
+        | "in" ("a" | "1") "minute" -> rel_one_minute
+        | "in" /[2-9]+/ "minutes" -> rel_few_minutes
+        | "in" ("an" | "1") "hour" -> rel_one_hour
+        | "in" /[2-9]+/ "hours" -> rel_few_hours
+        | "in" ("a" | "1") "month" -> rel_one_month
+        | "in" /[2-9]+/ "months" -> rel_few_months
+        | "in" ("a" | "1") "year" -> rel_one_year
+        | "in" /[2-9]+/ "years" -> rel_few_years
+        | "next week" -> rel_next_week
+        | "next month" -> rel_next_month
+        | "next year" -> rel_next_year
 
-_time: hour_min ":" hour_min
+time: time_types timezone?
+
+time_types: meridiem
+          | military
+
+meridiem: /(1[0-2]|[1-9])/ ":" /[0-5][0-9]/ meridiems
+
+military: /([0-1][0-9]|2[0-3])/ ":" /[0-5][0-9]/
+        | /([0-1][0-9]|2[0-3])[0-5][0-9]/
+
+meridiems: "AM" -> ante_meridiem
+        | "PM" -> post_meridiem
 
 timezone: /[A-Z]{3,4}/
 
