@@ -3,7 +3,6 @@ random: /[a-zA-Z_]\w*/
 _expr: date
      | time
      | date "at" time
-     | relative_phrases
      | random _expr
      | _expr random
 
@@ -13,6 +12,7 @@ date: days
     | middle_endian
     | other
     | relative -> relative
+    | quantity -> quantity
 
 day_month: /[0-9]{1,2}/
 year: /[0-9]{4}/
@@ -75,21 +75,20 @@ relative: "yesterday" -> yesterday
         | "today" -> today
         | "tomorrow" -> tomorrow
 
-relative_phrases:
-        | "in" /[2-9]+/ "days" -> rel_few_days
-        | "in" ("a" | "1") "second" -> rel_one_second
-        | "in" /[2-9]+/ "seconds" -> rel_few_seconds
-        | "in" ("a" | "1") "minute" -> rel_one_minute
-        | "in" /[2-9]+/ "minutes" -> rel_few_minutes
-        | "in" ("an" | "1") "hour" -> rel_one_hour
-        | "in" /[2-9]+/ "hours" -> rel_few_hours
-        | "in" ("a" | "1") "month" -> rel_one_month
-        | "in" /[2-9]+/ "months" -> rel_few_months
-        | "in" ("a" | "1") "year" -> rel_one_year
-        | "in" /[2-9]+/ "years" -> rel_few_years
-        | "next week" -> rel_next_week
-        | "next month" -> rel_next_month
-        | "next year" -> rel_next_year
+quantity: "in" quantity -> in_clause
+        | /[2-9]+/ "days" -> few_days
+        | ("a" | "1") "second" -> one_second
+        | /[2-9]+/ "seconds" -> few_seconds
+        | ("a" | "1") "minute" -> one_minute
+        | /[2-9]+/ "minutes" -> few_minutes
+        | ("an" | "1") "hour" -> one_hour
+        | /[2-9]+/ "hours" -> few_hours
+        | ("a" | "1" | "next") "week" -> one_week
+        | /[2-9]+/ "week" -> few_weeks
+        | ("a" | "1" | "next") "month" -> one_month 
+        | /[2-9]+/ "months" -> few_months
+        | ("a" | "1" | "next") "year" -> one_year
+        | /[2-9]+/ "years" -> few_years
 
 time: time_types timezone?
 

@@ -6,6 +6,10 @@ from pathlib import Path
 DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 MONTHS = ['__', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
+# TODO: Add Timezones interpreting
+# TODO: Add optional Timezone default setting (Not UTC)
+# TODO: Add better digit recognising (ie. both `1` and `one`)
+
 class DateTimeParser:
     def __init__(self):
         grammar = Path(__file__).parent.joinpath('datetime.lark')
@@ -22,6 +26,10 @@ class DateTimeParser:
         self._relative = False
         self._exact_time = True
 
+        # Only if Relative.
+        self.start_time = None
+        self.delta_time = None
+
         self.discarded = []
 
     def reset(self):
@@ -33,6 +41,8 @@ class DateTimeParser:
         self._root = None
         self._relative = False
         self._exact_time = False
+        self.start_time = None
+        self.delta_time = None
         self.discarded = []
 
     def parse(self, text):
@@ -47,12 +57,14 @@ class DateTimeParser:
             if self._month:
                 days += 30 * self._month
 
+            self.start_time = datetime.utcnow()
+
             if self._exact_time:
-                delta = timedelta(days=days)
-                return datetime.utcnow().replace(hour=self._hour, minute=self._minute) + delta
+                self.delta_time = timedelta(days=days)
+                return self.start_time.replace(hour=self._hour, minute=self._minute) + self.delta_time
             else:
-                delta = timedelta(days=days, minutes=self._minute, hours=self._hour)
-                return datetime.utcnow() + delta
+                self.delta_time = timedelta(days=days, minutes=self._minute, hours=self._hour)
+                return self.start_time + self.delta_time
         else:
             return datetime(self._year, self._month, self._day, self._hour, self._minute)
 
@@ -70,7 +82,7 @@ class DateTimeParser:
             if child.data == 'time':
                 self.check_time(child)
 
-            if child.data.startswith('rel'):
+            if child.data.startswith('rel') or child.data == 'quantity':
                 self.check_relative(child)
                 self._relative = True
 
@@ -120,7 +132,12 @@ class DateTimeParser:
             self._exact_time = True
 
     def check_relative(self, tree):
-        if tree.data.startswith('rel_'):
+        if tree.data.startswith('quantity'):
+            if tree.children[0].data == 'in_clause':
+                tree = tree.children[0].children[0] # quantity -> in_clause -> few_weeks etc
+            else:
+                tree = tree.children[0] # quantity -> few_weeks etc
+
             val = 0
             if 'one' in tree.data:
                 val = 1
