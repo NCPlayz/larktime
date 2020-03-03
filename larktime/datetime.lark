@@ -83,11 +83,11 @@ quantity: "in" quantity -> in_clause
         | /[2-9]+/ "minutes" -> few_minutes
         | ("an" | "1") "hour" -> one_hour
         | /[2-9]+/ "hours" -> few_hours
-        | ("a" | "1" | "next") "week" -> one_week
+        | ("a" | "1") "week" -> one_week
         | /[2-9]+/ "week" -> few_weeks
-        | ("a" | "1" | "next") "month" -> one_month 
+        | ("a" | "1") "month" -> one_month 
         | /[2-9]+/ "months" -> few_months
-        | ("a" | "1" | "next") "year" -> one_year
+        | ("a" | "1") "year" -> one_year
         | /[2-9]+/ "years" -> few_years
 
 time: time_types timezone?
