@@ -11,6 +11,8 @@ date: days
     | little_endian
     | middle_endian
     | other
+    | relative -> relative
+    | quantity -> quantity
 
 day_month: /[0-9]{1,2}/
 year: /[0-9]{4}/
@@ -69,11 +71,37 @@ months: ("January" | "Jan") -> jan
       | ("November" | "Nov") -> nov
       | ("December" | "Dec") -> dec
 
-hour_min: /[0-9]{2}/
+relative: "yesterday" -> yesterday
+        | "today" -> today
+        | "tomorrow" -> tomorrow
 
-time: _time timezone?
+quantity: "in" quantity -> in_clause
+        | /[2-9]+/ "days" -> few_days
+        | ("a" | "1") "second" -> one_second
+        | /[2-9]+/ "seconds" -> few_seconds
+        | ("a" | "1") "minute" -> one_minute
+        | /[2-9]+/ "minutes" -> few_minutes
+        | ("an" | "1") "hour" -> one_hour
+        | /[2-9]+/ "hours" -> few_hours
+        | ("a" | "1") "week" -> one_week
+        | /[2-9]+/ "week" -> few_weeks
+        | ("a" | "1") "month" -> one_month 
+        | /[2-9]+/ "months" -> few_months
+        | ("a" | "1") "year" -> one_year
+        | /[2-9]+/ "years" -> few_years
 
-_time: hour_min ":" hour_min
+time: time_types timezone?
+
+time_types: meridiem
+          | military
+
+meridiem: /(1[0-2]|[1-9])/ ":" /[0-5][0-9]/ meridiems
+
+military: /([0-1][0-9]|2[0-3])/ ":" /[0-5][0-9]/
+        | /([0-1][0-9]|2[0-3])[0-5][0-9]/
+
+meridiems: "AM" -> ante_meridiem
+        | "PM" -> post_meridiem
 
 timezone: /[A-Z]{3,4}/
 
