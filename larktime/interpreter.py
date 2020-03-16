@@ -6,6 +6,7 @@ from pathlib import Path
 DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 MONTHS = ['__', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
+# TODO: re-implement time to not break little/middle endian
 # TODO: Add Timezones interpreting
 # TODO: Add optional Timezone default setting (Not UTC)
 # TODO: Add better digit recognising (ie. both `1` and `one`)
@@ -48,7 +49,7 @@ class DateTimeParser:
     def parse(self, text):
         self.reset()
 
-        tree = self.parser.parse(text)
+        tree = self.parser.parse(text.lower())
 
         self.check_root(tree)
 
@@ -66,6 +67,11 @@ class DateTimeParser:
                 self.delta_time = timedelta(days=days, minutes=self._minute, hours=self._hour)
                 return self.start_time + self.delta_time
         else:
+            if self._year is 0:
+                self._year = datetime.utcnow().year
+
+            print(self._day, self._month)
+
             return datetime(self._year, self._month, self._day, self._hour, self._minute)
 
     def check_root(self, tree):
@@ -86,18 +92,18 @@ class DateTimeParser:
                 self.check_relative(child)
                 self._relative = True
 
-    def check_date(self, tree):
-        day_next = False
-
+    def check_date(self, tree, day_next=False, has_days=False):
         for child in tree.children:
             if child.data in ['other', 'little_endian', 'middle_endian', 'on_clause']:
-                return self.check_date(child)
+                return self.check_date(child, day_next=day_next, has_days=any(c.data for c in child.children if c.data == 'days'))
+            elif child.data in 'standard':
+                return self.check_standard(child)
 
             if child.data in DAYS:
                 day_next = True
                 continue
 
-            if day_next:
+            if (day_next or not (day_next and has_days)) and child.data == 'day_month':
                 self._day = int(child.children[0].value)
                 day_next = False
                 continue
@@ -130,6 +136,10 @@ class DateTimeParser:
             self._hour = hour
             self._minute = minute
             self._exact_time = True
+
+    def check_standard(self, tree):
+        child = tree.children
+        self._day, _, self._month, _, self._year = [int(getattr(c.children[0] if len(c.children) == 1 else None, 'value', '0')) for c in tree.children]
 
     def check_relative(self, tree):
         if tree.data.startswith('quantity'):

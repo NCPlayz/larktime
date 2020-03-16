@@ -1,12 +1,11 @@
 random: /[a-zA-Z_]\w*/
 
 _expr: date
-     | time
-     | date "at" time
      | random _expr
      | _expr random
 
 date: days
+    | date "at" time
     | date_regex
     | little_endian
     | middle_endian
@@ -17,14 +16,12 @@ date: days
 day_month: /[0-9]{1,2}/
 year: /[0-9]{4}/
 
-date_regex: day_month sep day_month sep year
+date_regex: day_month sep day_month sep year -> standard
 
-little_endian: day_month ord_ind "of" months year
+little_endian: day_month ord_ind months ["in" year]
+             | days little_endian
              | day_month months year
-             | days day_month ord_ind months
              | days day_month months
-             | day_month ord_ind "of" months "in" year
-             | day_month ord_ind "of" months year
              | day_month months "," year
 
 middle_endian: months day_month ord_ind
@@ -50,26 +47,26 @@ ord_ind: "th"
 sep: "/"
    | "-"
 
-days: "Monday" -> mon
-    | "Tuesday" -> tue
-    | "Wednesday" -> wed
-    | "Thursday" -> thu
-    | "Friday" -> fri
-    | "Saturday" -> sat
-    | "Sunday" -> sun
+days: "monday" -> mon
+    | "tuesday" -> tue
+    | "wednesday" -> wed
+    | "thursday" -> thu
+    | "friday" -> fri
+    | "saturday" -> sat
+    | "sunday" -> sun
 
-months: ("January" | "Jan") -> jan
-      | ("February" | "Feb") -> feb
-      | ("March" | "Mar") -> mar
-      | ("April" | "Apr") -> apr
-      | "May" -> may
-      | ("June" | "Jun") -> jun
-      | ("July" | "Jul") -> jul
-      | ("August" | "Aug") -> aug
-      | ("September" | "Sep") -> sep
-      | ("October" | "Oct") -> oct
-      | ("November" | "Nov") -> nov
-      | ("December" | "Dec") -> dec
+months: ("january" | "jan") -> jan
+      | ("february" | "feb") -> feb
+      | ("march" | "mar") -> mar
+      | ("april" | "apr") -> apr
+      | "may" -> may
+      | ("june" | "jun") -> jun
+      | ("july" | "jul") -> jul
+      | ("august" | "aug") -> aug
+      | ("september" | "sep") -> sep
+      | ("october" | "oct") -> oct
+      | ("november" | "nov") -> nov
+      | ("december" | "dec") -> dec
 
 relative: "yesterday" -> yesterday
         | "today" -> today
